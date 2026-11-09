@@ -92,6 +92,11 @@ describe('PUT /api/weeks/:weekStart/people/:personId', () => {
     expect((await put('2026-11-17', 1, [])).statusCode).toBe(400);
   });
 
+  it('404 instead of 500 for a personId beyond the integer range', async () => {
+    expect((await put('2026-11-16', 99999999999, [])).statusCode).toBe(404);
+    expect((await app.inject('/api/weeks/2026-11-16?personId=99999999999')).statusCode).toBe(404);
+  });
+
   it('404 for unknown, inactive or non-numeric person', async () => {
     expect((await put('2026-11-16', 999, [])).statusCode).toBe(404);
     expect((await put('2026-11-16', 7, [])).statusCode).toBe(404);

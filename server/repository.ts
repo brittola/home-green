@@ -18,10 +18,11 @@ export interface Repository {
   replacePersonDates(personId: number, remove: IsoDate[], add: IsoDate[]): Promise<void>;
   isReminderSent(weekStart: IsoDate): Promise<boolean>;
   markReminderSent(weekStart: IsoDate): Promise<void>;
-  withLock<T>(fn: (tx: Repository) => Promise<T>): Promise<T>;
+  withLock<T>(fn: (tx: Repository) => Promise<T>, key?: number): Promise<T>;
 }
 
 export const GLOBAL_LOCK_KEY = 482901;
+export const REMINDER_LOCK_KEY = 482902;
 
 type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 type Executor = Db | Tx;
@@ -104,10 +105,10 @@ function build(executor: Executor, inTransaction: boolean, root: Db): Repository
       await executor.insert(remindersSent).values({ weekStart }).onConflictDoNothing();
     },
 
-    async withLock(fn) {
+    async withLock(fn, key = GLOBAL_LOCK_KEY) {
       if (inTransaction) return fn(repo);
       return root.transaction(async (tx) => {
-        await tx.execute(sql`select pg_advisory_xact_lock(${GLOBAL_LOCK_KEY})`);
+        await tx.execute(sql`select pg_advisory_xact_lock(${key})`);
         return fn(build(tx, true, root));
       });
     },

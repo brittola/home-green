@@ -1,5 +1,5 @@
 import type { IsoDate, PersonSummary, Weekday } from '../../shared/types.js';
-import type { Repository } from '../../server/repository.js';
+import { GLOBAL_LOCK_KEY, type Repository } from '../../server/repository.js';
 
 export interface MemoryPerson extends PersonSummary {
   active: boolean;
@@ -33,9 +33,13 @@ function summary(person: MemoryPerson): PersonSummary {
   return { id: person.id, name: person.name, hasParkingCard: person.hasParkingCard };
 }
 
-export function createMemoryRepository(state: MemoryState = defaultState()): Repository & { state: MemoryState } {
-  const repo: Repository & { state: MemoryState } = {
+export function createMemoryRepository(
+  state: MemoryState = defaultState(),
+): Repository & { state: MemoryState; lockKeys: number[] } {
+  const lockKeys: number[] = [];
+  const repo: Repository & { state: MemoryState; lockKeys: number[] } = {
     state,
+    lockKeys,
     async ping() {},
     async listActivePeople() {
       return state.people
@@ -78,7 +82,8 @@ export function createMemoryRepository(state: MemoryState = defaultState()): Rep
     async markReminderSent(weekStart) {
       if (!state.reminders.includes(weekStart)) state.reminders.push(weekStart);
     },
-    async withLock(fn) {
+    async withLock(fn, key = GLOBAL_LOCK_KEY) {
+      lockKeys.push(key);
       const snapshot = structuredClone({ remote: state.remote, reminders: state.reminders });
       try {
         return await fn(repo);

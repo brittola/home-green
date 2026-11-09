@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../../server/app.js';
 import { createEventBus } from '../../server/events.js';
 import { buildReminderText } from '../../server/reminder.js';
+import { GLOBAL_LOCK_KEY, REMINDER_LOCK_KEY } from '../../server/repository.js';
 import { createMemoryRepository } from '../fakes/memory-repository.js';
 
 const env = {
@@ -65,6 +66,12 @@ describe('POST /api/cron/weekly-reminder', () => {
     const second = await callCron();
     expect(second.json()).toEqual({ status: 'already-sent' });
     expect(slackPosts).toHaveLength(1);
+  });
+
+  it('uses its own lock so a slow Slack call does not block confirmations', async () => {
+    await callCron();
+    expect(repo.lockKeys).toEqual([REMINDER_LOCK_KEY]);
+    expect(REMINDER_LOCK_KEY).not.toBe(GLOBAL_LOCK_KEY);
   });
 
   it('does not mark as sent when Slack fails', async () => {

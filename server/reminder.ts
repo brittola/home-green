@@ -1,7 +1,7 @@
 import { formatWeekRange } from '../shared/dates.js';
 import type { IsoDate } from '../shared/types.js';
 import { weekWindow } from '../shared/window.js';
-import type { Repository } from './repository.js';
+import { REMINDER_LOCK_KEY, type Repository } from './repository.js';
 import type { SlackPoster } from './slack.js';
 
 export function buildReminderText(weekStart: IsoDate, appUrl: string): string {
@@ -20,5 +20,5 @@ export async function sendWeeklyReminder(deps: {
     await deps.slack.post(buildReminderText(nextWeekStart, deps.appUrl));
     await tx.markReminderSent(nextWeekStart);
     return 'sent';
-  });
+  }, REMINDER_LOCK_KEY);
 }

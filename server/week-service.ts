@@ -5,12 +5,16 @@ import { isDateEditable, isWeekEditable, isWeekViewable, weekWindow } from '../s
 import { HttpError } from './errors.js';
 import type { Repository } from './repository.js';
 
+const MAX_PERSON_ID = 2_147_483_647;
+
 export function assertWeekStart(weekStart: string): void {
   if (!isIsoDate(weekStart) || isoWeekday(weekStart) !== 1) throw new HttpError(400, 'invalid-week');
 }
 
 export async function assertActivePerson(repo: Repository, personId: number): Promise<void> {
-  if (!Number.isInteger(personId) || personId <= 0) throw new HttpError(404, 'person-not-found');
+  if (!Number.isInteger(personId) || personId <= 0 || personId > MAX_PERSON_ID) {
+    throw new HttpError(404, 'person-not-found');
+  }
   const person = await repo.findActivePerson(personId);
   if (!person) throw new HttpError(404, 'person-not-found');
 }

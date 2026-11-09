@@ -5,7 +5,11 @@ export interface SlackPoster {
 }
 
 export function createSlackPoster(token: string, channelId: string): SlackPoster {
-  const client = new WebClient(token, { retryConfig: { retries: 2 } });
+  const client = new WebClient(token, {
+    timeout: 10_000,
+    rejectRateLimitedCalls: true,
+    retryConfig: { retries: 0 },
+  });
   return {
     async post(text) {
       const res = await client.chat.postMessage({ channel: channelId, text, unfurl_links: false });

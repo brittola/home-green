@@ -7,6 +7,7 @@ interface Props {
   minWeekStart: IsoDate;
   maxWeekStart: IsoDate;
   editable: boolean;
+  disabled?: boolean;
   onNavigate: (weekStart: IsoDate) => void;
 }
 
@@ -17,7 +18,15 @@ function relativeLabel(weekStart: IsoDate, currentWeekStart: IsoDate): string {
   return weeksAgo === 1 ? 'Semana passada' : `${weeksAgo} semanas atrás`;
 }
 
-export function WeekNav({ weekStart, currentWeekStart, minWeekStart, maxWeekStart, editable, onNavigate }: Props) {
+export function WeekNav({
+  weekStart,
+  currentWeekStart,
+  minWeekStart,
+  maxWeekStart,
+  editable,
+  disabled = false,
+  onNavigate,
+}: Props) {
   const previous = addDays(weekStart, -7);
   const next = addDays(weekStart, 7);
   return (
@@ -26,7 +35,7 @@ export function WeekNav({ weekStart, currentWeekStart, minWeekStart, maxWeekStar
         type="button"
         className="icon-button"
         aria-label="Semana anterior"
-        disabled={previous < minWeekStart}
+        disabled={disabled || previous < minWeekStart}
         onClick={() => onNavigate(previous)}
       >
         ‹
@@ -39,7 +48,7 @@ export function WeekNav({ weekStart, currentWeekStart, minWeekStart, maxWeekStar
         type="button"
         className="icon-button"
         aria-label="Próxima semana"
-        disabled={next > maxWeekStart}
+        disabled={disabled || next > maxWeekStart}
         onClick={() => onNavigate(next)}
       >
         ›

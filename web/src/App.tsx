@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isIsoDate, isoWeekday, todayIn } from '../../shared/dates.js';
 import type { IsoDate, PersonSummary, WeekView } from '../../shared/types.js';
 import { isWeekViewable, weekWindow } from '../../shared/window.js';
@@ -27,6 +27,8 @@ export function App() {
   const [peopleError, setPeopleError] = useState(false);
   const [personId, setPersonId] = usePerson(people);
   const [weekStart, setWeekStart] = useState<IsoDate>(initialWeek);
+  const activeKey = useRef('');
+  activeKey.current = `${weekStart}:${personId}`;
   const { view, error, reload, setView } = useWeek(weekStart, personId);
   const [selection, setSelection] = useState<Set<IsoDate>>(new Set());
   const [dirty, setDirty] = useState(false);
@@ -80,8 +82,10 @@ export function App() {
     if (personId === null || !view) return;
     setSaving(true);
     setMessage(null);
+    const requestKey = activeKey.current;
     try {
       const outcome = await saveWeek(weekStart, personId, [...selection].sort());
+      if (requestKey !== activeKey.current) return;
       if (outcome.ok) {
         setView(outcome.view);
         resetFrom(outcome.view);
@@ -125,6 +129,7 @@ export function App() {
             minWeekStart={view.minWeekStart}
             maxWeekStart={view.maxWeekStart}
             editable={view.editable}
+            disabled={saving}
             onNavigate={navigate}
           />
           {personId === null && view.editable ? (
