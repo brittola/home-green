@@ -50,6 +50,13 @@ describe('dayState', () => {
     expect(dayState(monday, v, 1, new Set())).toEqual({ kind: 'available' });
   });
 
+  it('blocks the day next to a selected day', () => {
+    expect(dayState(wed, view, 1, new Set(['2026-11-17']))).toMatchObject({
+      kind: 'blocked',
+      message: 'Você já tem home na terça 17/nov, e não pode ter dois dias seguidos',
+    });
+  });
+
   it('uses saved dates outside the week for month rules', () => {
     const friday = day('2026-11-20', 5, 3);
     const v = makeView([friday], ['2026-11-06']);

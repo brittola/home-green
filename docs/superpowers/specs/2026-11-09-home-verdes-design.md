@@ -79,6 +79,7 @@ Regras de segunda e sexta (ficam no código, por pessoa):
 2. **No máximo uma sexta de home por mês**, com o mesmo critério de mês.
 3. **Segunda e sexta na mesma semana não podem.**
 4. **Sexta seguida da segunda não pode.** A pessoa não pode ter a sexta D e a segunda D+3. Essa regra vale mesmo na virada do mês. *(Decisão minha: a pessoa só pediu "em sequência", e eu estendi para a virada do mês.)*
+5. **Dois dias de home seguidos não podem** (segunda e terça, terça e quarta etc.). O dia de hoje e os dias que já passaram contam como vizinhos. *(Regra adicionada depois do primeiro deploy.)*
 
 Ao confirmar, só os **dias adicionados** são validados. Desmarcar um dia é sempre permitido, desde que seja de amanhã em diante. Dias já salvos que passem a violar uma regra, por exemplo porque um limite foi reduzido no Neon, continuam valendo e não impedem a pessoa de salvar outras mudanças. Na tela, um dia acima do limite aparece como "4 / 3 em home". *(Decisão minha.)*
 

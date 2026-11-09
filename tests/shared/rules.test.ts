@@ -60,6 +60,31 @@ describe('canAdd', () => {
     });
   });
 
+  it('blocks a day right after another home day', () => {
+    expect(canAdd('2026-11-18', { ...base, personDates: ['2026-11-17'] })).toEqual({
+      kind: 'consecutive-day',
+      other: '2026-11-17',
+    });
+  });
+
+  it('blocks a day right before another home day', () => {
+    expect(canAdd('2026-11-16', { ...base, personDates: ['2026-11-17'] })).toEqual({
+      kind: 'consecutive-day',
+      other: '2026-11-17',
+    });
+  });
+
+  it('counts today as a neighbour', () => {
+    expect(canAdd('2026-11-20', { ...base, today: '2026-11-19', personDates: ['2026-11-19'] })).toEqual({
+      kind: 'consecutive-day',
+      other: '2026-11-19',
+    });
+  });
+
+  it('allows days with a gap between them', () => {
+    expect(canAdd('2026-11-19', { ...base, personDates: ['2026-11-17'] })).toBeNull();
+  });
+
   it('locks today', () => {
     expect(canAdd('2026-11-13', { ...base, personDates: [] })).toEqual({ kind: 'locked' });
   });
@@ -77,7 +102,7 @@ describe('validateAdditions', () => {
   });
 
   it('returns nothing for valid additions', () => {
-    expect(validateAdditions(['2026-11-17'], ['2026-11-17', '2026-11-18'], '2026-11-13', {}, limits)).toEqual([]);
+    expect(validateAdditions(['2026-11-17'], ['2026-11-17', '2026-11-19'], '2026-11-13', {}, limits)).toEqual([]);
   });
 });
 
@@ -100,6 +125,9 @@ describe('blockReasonMessage', () => {
     );
     expect(blockReasonMessage({ kind: 'friday-before-monday', other: '2026-11-23' })).toBe(
       'Você já tem a segunda 23/nov, então não pode marcar a sexta anterior',
+    );
+    expect(blockReasonMessage({ kind: 'consecutive-day', other: '2026-11-17' })).toBe(
+      'Você já tem home na terça 17/nov, e não pode ter dois dias seguidos',
     );
     expect(blockReasonMessage({ kind: 'monday-after-friday', other: '2026-11-20' })).toBe(
       'Você já tem a sexta 20/nov, então não pode marcar a segunda seguinte',

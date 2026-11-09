@@ -17,6 +17,7 @@ Design e regras: [`docs/superpowers/specs/2026-11-09-home-verdes-design.md`](doc
 | Uma segunda e uma sexta por mês | Código, `shared/rules.ts` |
 | Segunda e sexta na mesma semana não podem | Código, `shared/rules.ts` |
 | Sexta seguida da segunda não pode (inclusive na virada do mês) | Código, `shared/rules.ts` |
+| Dois dias de home seguidos não podem (ex.: terça e quarta) | Código, `shared/rules.ts` |
 | Só a semana atual e a próxima podem ser editadas; hoje e dias passados ficam travados | Código, `shared/window.ts` |
 
 ## Rodar localmente

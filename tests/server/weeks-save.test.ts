@@ -32,9 +32,9 @@ function seedRemote(date: string, personIds: number[]) {
 
 describe('PUT /api/weeks/:weekStart/people/:personId', () => {
   it('saves two future days and publishes', async () => {
-    const res = await put('2026-11-16', 1, ['2026-11-17', '2026-11-18']);
+    const res = await put('2026-11-16', 1, ['2026-11-17', '2026-11-19']);
     expect(res.statusCode).toBe(200);
-    expect(res.json().personDates).toEqual(['2026-11-17', '2026-11-18']);
+    expect(res.json().personDates).toEqual(['2026-11-17', '2026-11-19']);
     expect(published).toEqual([{ type: 'week-changed', weekStart: '2026-11-16' }]);
   });
 
@@ -71,11 +71,20 @@ describe('PUT /api/weeks/:weekStart/people/:personId', () => {
   it('keeps an existing over-limit day while adding another', async () => {
     seedRemote('2026-11-18', [1, 2, 3, 4]);
     repo.state.limits[3] = 3;
-    expect((await put('2026-11-16', 1, ['2026-11-18', '2026-11-19'])).statusCode).toBe(200);
+    expect((await put('2026-11-16', 1, ['2026-11-18', '2026-11-20'])).statusCode).toBe(200);
   });
 
   it('rejects a date outside the week', async () => {
     expect((await put('2026-11-16', 1, ['2026-11-23'])).statusCode).toBe(400);
+  });
+
+  it('rejects two consecutive days', async () => {
+    const res = await put('2026-11-16', 1, ['2026-11-17', '2026-11-18']);
+    expect(res.statusCode).toBe(409);
+    expect(res.json().violations.map((v: { reason: { kind: string } }) => v.reason.kind)).toEqual([
+      'consecutive-day',
+      'consecutive-day',
+    ]);
   });
 
   it('rejects a malformed body', async () => {

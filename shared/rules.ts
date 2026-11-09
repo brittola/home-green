@@ -22,7 +22,8 @@ export type BlockReason =
   | { kind: 'friday-of-month'; usedOn: IsoDate }
   | { kind: 'monday-friday-same-week'; other: IsoDate }
   | { kind: 'friday-before-monday'; other: IsoDate }
-  | { kind: 'monday-after-friday'; other: IsoDate };
+  | { kind: 'monday-after-friday'; other: IsoDate }
+  | { kind: 'consecutive-day'; other: IsoDate };
 
 export interface AddContext {
   today: IsoDate;
@@ -63,6 +64,8 @@ export function canAdd(date: IsoDate, ctx: AddContext): BlockReason | null {
     const nextMonday = addDays(date, 3);
     if (others.includes(nextMonday)) return { kind: 'friday-before-monday', other: nextMonday };
   }
+  const neighbour = [addDays(date, -1), addDays(date, 1)].find((d) => others.includes(d));
+  if (neighbour) return { kind: 'consecutive-day', other: neighbour };
   return null;
 }
 
@@ -88,8 +91,10 @@ export function validateAdditions(
   return violations;
 }
 
+const WEEKDAY_NAMES_PT = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'] as const;
+
 function weekdayName(d: IsoDate): string {
-  return isoWeekday(d) === 1 ? 'segunda' : 'sexta';
+  return WEEKDAY_NAMES_PT[isoWeekday(d) - 1] as string;
 }
 
 export function blockReasonMessage(reason: BlockReason): string {
@@ -110,6 +115,8 @@ export function blockReasonMessage(reason: BlockReason): string {
       return `Você já tem a segunda ${formatDayMonth(reason.other)}, então não pode marcar a sexta anterior`;
     case 'monday-after-friday':
       return `Você já tem a sexta ${formatDayMonth(reason.other)}, então não pode marcar a segunda seguinte`;
+    case 'consecutive-day':
+      return `Você já tem home na ${weekdayName(reason.other)} ${formatDayMonth(reason.other)}, e não pode ter dois dias seguidos`;
   }
 }
 
