@@ -31,7 +31,7 @@ export function App() {
   const [selection, setSelection] = useState<Set<IsoDate>>(new Set());
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; tone: 'success' | 'error' } | null>(null);
   const [violations, setViolations] = useState<Record<IsoDate, string>>({});
 
   useEffect(() => {
@@ -86,14 +86,14 @@ export function App() {
         setView(outcome.view);
         resetFrom(outcome.view);
         setViolations({});
-        setMessage('Escala salva');
+        setMessage({ text: 'Escala salva.', tone: 'success' });
       } else {
         setViolations(Object.fromEntries(outcome.violations.map((v) => [v.date, v.message])));
-        setMessage('Não deu para salvar: veja os dias destacados.');
+        setMessage({ text: 'Não deu para salvar. Veja os dias destacados.', tone: 'error' });
         resetFrom(await reload());
       }
     } catch {
-      setMessage('Erro ao salvar. Tente de novo.');
+      setMessage({ text: 'Erro ao salvar. Tente de novo.', tone: 'error' });
     } finally {
       setSaving(false);
     }
@@ -102,7 +102,15 @@ export function App() {
   return (
     <main className="app">
       <header className="app-header">
-        <h1>Escala de home office</h1>
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            HV
+          </span>
+          <div>
+            <h1>Home Verdes</h1>
+            <p className="brand-sub">Escala de home office do time</p>
+          </div>
+        </div>
         {people ? <PersonPicker people={people} personId={personId} onChange={setPersonId} /> : null}
       </header>
 
@@ -113,13 +121,14 @@ export function App() {
         <>
           <WeekNav
             weekStart={view.weekStart}
+            currentWeekStart={view.currentWeekStart}
             minWeekStart={view.minWeekStart}
             maxWeekStart={view.maxWeekStart}
             editable={view.editable}
             onNavigate={navigate}
           />
           {personId === null && view.editable ? (
-            <p className="notice">Escolha seu nome para marcar seus dias.</p>
+            <p className="notice notice-info">Escolha seu nome no topo para marcar seus dias.</p>
           ) : null}
           <section className="week-grid">
             {view.days.map((day) => (
@@ -128,6 +137,7 @@ export function App() {
                 day={day}
                 me={me}
                 selected={selection.has(day.date)}
+                isToday={day.date === view.today}
                 state={personId === null ? null : dayState(day, view, personId, selection)}
                 violation={violations[day.date]}
                 onToggle={() => toggle(day.date)}
@@ -138,14 +148,22 @@ export function App() {
             <ConfirmBar
               dirty={dirty}
               saving={saving}
-              message={message}
+              message={message?.text ?? null}
+              messageTone={message?.tone ?? null}
               onConfirm={confirm}
               onReset={() => resetFrom(view)}
             />
           ) : null}
         </>
       ) : !error ? (
-        <p className="notice">Carregando escala… (o servidor pode levar até um minuto para acordar)</p>
+        <div className="loading" aria-busy="true">
+          <p className="notice">Carregando a escala. Se o servidor estiver dormindo, pode levar até um minuto.</p>
+          <div className="week-grid">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="day skeleton" />
+            ))}
+          </div>
+        </div>
       ) : null}
     </main>
   );

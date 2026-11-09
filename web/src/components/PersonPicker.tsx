@@ -8,8 +8,8 @@ interface Props {
 
 export function PersonPicker({ people, personId, onChange }: Props) {
   return (
-    <label className="person-picker">
-      <span>Você é</span>
+    <label className={personId === null ? 'person-picker is-empty' : 'person-picker'}>
+      <span className="person-label">Você é</span>
       <select
         value={personId ?? ''}
         onChange={(event) => onChange(event.target.value === '' ? null : Number(event.target.value))}

@@ -2,24 +2,27 @@ interface Props {
   dirty: boolean;
   saving: boolean;
   message: string | null;
+  messageTone: 'success' | 'error' | null;
   onConfirm: () => void;
   onReset: () => void;
 }
 
-export function ConfirmBar({ dirty, saving, message, onConfirm, onReset }: Props) {
+export function ConfirmBar({ dirty, saving, message, messageTone, onConfirm, onReset }: Props) {
   return (
     <div className="confirm-bar">
-      <span className="confirm-message" role="status">
-        {message}
+      <span className={`confirm-message${messageTone ? ` tone-${messageTone}` : ''}`} role="status">
+        {message ?? (dirty ? 'Você tem alterações não salvas.' : '')}
       </span>
-      {dirty ? (
-        <button type="button" className="button-secondary" onClick={onReset} disabled={saving}>
-          Desfazer
+      <div className="confirm-actions">
+        {dirty ? (
+          <button type="button" className="button button-ghost" onClick={onReset} disabled={saving}>
+            Desfazer
+          </button>
+        ) : null}
+        <button type="button" className="button button-primary" onClick={onConfirm} disabled={!dirty || saving}>
+          {saving ? 'Salvando…' : 'Confirmar meus dias'}
         </button>
-      ) : null}
-      <button type="button" className="button-primary" onClick={onConfirm} disabled={!dirty || saving}>
-        {saving ? 'Salvando…' : 'Confirmar meus dias'}
-      </button>
+      </div>
     </div>
   );
 }
