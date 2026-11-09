@@ -7,6 +7,7 @@ import { ConfirmBar } from './components/ConfirmBar.js';
 import { DayCard } from './components/DayCard.js';
 import { PersonPicker } from './components/PersonPicker.js';
 import { WeekNav } from './components/WeekNav.js';
+import { WeekSkeleton } from './components/WeekSkeleton.js';
 import { dayState, savedWeekDates } from './day-state.js';
 import { usePerson } from './usePerson.js';
 import { useWeek } from './useWeek.js';
@@ -115,7 +116,11 @@ export function App() {
             <p className="brand-sub">Escala de home office do time</p>
           </div>
         </div>
-        {people ? <PersonPicker people={people} personId={personId} onChange={setPersonId} /> : null}
+        {people ? (
+          <PersonPicker people={people} personId={personId} onChange={setPersonId} />
+        ) : peopleError ? null : (
+          <span className="sk sk-picker" aria-hidden="true" />
+        )}
       </header>
 
       {peopleError ? <p className="notice notice-error">Não foi possível carregar o time. Recarregue a página.</p> : null}
@@ -128,7 +133,6 @@ export function App() {
             currentWeekStart={view.currentWeekStart}
             minWeekStart={view.minWeekStart}
             maxWeekStart={view.maxWeekStart}
-            editable={view.editable}
             disabled={saving}
             onNavigate={navigate}
           />
@@ -161,14 +165,7 @@ export function App() {
           ) : null}
         </>
       ) : !error ? (
-        <div className="loading" aria-busy="true">
-          <p className="notice">Carregando a escala. Se o servidor estiver dormindo, pode levar até um minuto.</p>
-          <div className="week-grid">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="day skeleton" />
-            ))}
-          </div>
-        </div>
+        <WeekSkeleton />
       ) : null}
     </main>
   );

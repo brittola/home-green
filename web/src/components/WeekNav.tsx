@@ -6,7 +6,6 @@ interface Props {
   currentWeekStart: IsoDate;
   minWeekStart: IsoDate;
   maxWeekStart: IsoDate;
-  editable: boolean;
   disabled?: boolean;
   onNavigate: (weekStart: IsoDate) => void;
 }
@@ -23,7 +22,6 @@ export function WeekNav({
   currentWeekStart,
   minWeekStart,
   maxWeekStart,
-  editable,
   disabled = false,
   onNavigate,
 }: Props) {
@@ -53,7 +51,6 @@ export function WeekNav({
       >
         ›
       </button>
-      <span className={editable ? 'badge is-editable' : 'badge'}>{editable ? 'editável' : 'somente visualização'}</span>
     </nav>
   );
 }
