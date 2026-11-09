@@ -19,7 +19,7 @@ beforeEach(() => {
   published = [];
   const events = createEventBus();
   events.subscribe((event) => published.push(event));
-  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env, events });
+  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env, events, slack: { post: async () => {} } });
 });
 
 function put(weekStart: string, personId: number | string, dates: unknown) {

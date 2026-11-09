@@ -5,14 +5,17 @@ import type { Env } from './env.js';
 import type { EventBus } from './events.js';
 import { HttpError } from './errors.js';
 import type { Repository } from './repository.js';
+import { registerCronRoutes } from './routes/cron.js';
 import { registerEventRoutes } from './routes/events.js';
 import { registerPeopleRoutes } from './routes/people.js';
 import { registerWeekRoutes } from './routes/weeks.js';
+import type { SlackPoster } from './slack.js';
 
 export interface AppDeps {
   repo: Repository;
   clock: Clock;
   events: EventBus;
+  slack: SlackPoster;
   env: Pick<Env, 'CRON_SECRET' | 'APP_URL' | 'WEB_ORIGIN'>;
 }
 
@@ -41,6 +44,7 @@ export function buildApp(deps: AppDeps, options: { logger?: boolean } = {}): Fas
   registerPeopleRoutes(app, deps);
   registerWeekRoutes(app, deps);
   registerEventRoutes(app, deps);
+  registerCronRoutes(app, deps);
 
   return app;
 }

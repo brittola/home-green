@@ -20,7 +20,7 @@ beforeEach(() => {
     { personId: 1, date: '2026-11-17' },
     { personId: 2, date: '2026-11-17' },
   );
-  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env, events: createEventBus() });
+  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env, events: createEventBus(), slack: { post: async () => {} } });
 });
 
 describe('GET /api/people', () => {
