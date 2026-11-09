@@ -3,6 +3,7 @@ services:
     name: home-verdes-api
     runtime: node
     plan: free
+    region: virginia
     buildCommand: npm ci && npm run build:server
     startCommand: npm start
     healthCheckPath: /healthz
