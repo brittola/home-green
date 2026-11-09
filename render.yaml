@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: home-verdes-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:server
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: SLACK_USER_TOKEN
+        sync: false
+      - key: SLACK_CHANNEL_ID
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false
