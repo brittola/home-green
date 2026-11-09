@@ -1,7 +1,7 @@
 import { isIsoDate, isoWeekday, weekDates } from '../shared/dates.js';
-import { ruleContextRange } from '../shared/rules.js';
+import { ruleContextRange, validateAdditions, type Violation } from '../shared/rules.js';
 import type { DayView, IsoDate, WeekView, Weekday } from '../shared/types.js';
-import { isWeekEditable, isWeekViewable, weekWindow } from '../shared/window.js';
+import { isDateEditable, isWeekEditable, isWeekViewable, weekWindow } from '../shared/window.js';
 import { HttpError } from './errors.js';
 import type { Repository } from './repository.js';
 
@@ -55,4 +55,50 @@ export async function getWeekView(
     days,
     personDates,
   };
+}
+
+export type SaveResult = { ok: true } | { ok: false; violations: Violation[] };
+
+export async function saveWeek(
+  repo: Repository,
+  today: IsoDate,
+  weekStart: IsoDate,
+  personId: number,
+  dates: IsoDate[],
+): Promise<SaveResult> {
+  assertWeekStart(weekStart);
+  const week = weekDates(weekStart);
+  if (dates.some((date) => !week.includes(date))) throw new HttpError(400, 'invalid-body');
+  if (!isWeekEditable(weekStart, today)) throw new HttpError(403, 'week-not-editable');
+  await assertActivePerson(repo, personId);
+
+  return repo.withLock(async (tx) => {
+    const first = week[0] as IsoDate;
+    const last = week[4] as IsoDate;
+    const range = ruleContextRange(weekStart);
+    const [limits, rows, contextDates] = await Promise.all([
+      tx.getDayLimits(),
+      tx.listRemoteDays(first, last),
+      tx.listPersonDates(personId, range.from, range.to),
+    ]);
+
+    const saved = contextDates.filter((date) => date >= first && date <= last);
+    const locked = saved.filter((date) => !isDateEditable(date, today));
+    const requested = [...new Set(dates)].filter((date) => isDateEditable(date, today));
+    const final = [...new Set([...locked, ...requested])].sort();
+    const added = final.filter((date) => !saved.includes(date));
+    const removed = saved.filter((date) => !final.includes(date));
+
+    const othersCountByDate: Record<IsoDate, number> = {};
+    for (const row of rows) {
+      if (row.person.id !== personId) othersCountByDate[row.date] = (othersCountByDate[row.date] ?? 0) + 1;
+    }
+
+    const outsideWeek = contextDates.filter((date) => date < first || date > last);
+    const violations = validateAdditions(added, [...outsideWeek, ...final], today, othersCountByDate, limits);
+    if (violations.length > 0) return { ok: false, violations };
+
+    await tx.replacePersonDates(personId, removed, added);
+    return { ok: true };
+  });
 }

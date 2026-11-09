@@ -2,14 +2,17 @@ import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { Clock } from './clock.js';
 import type { Env } from './env.js';
+import type { EventBus } from './events.js';
 import { HttpError } from './errors.js';
 import type { Repository } from './repository.js';
+import { registerEventRoutes } from './routes/events.js';
 import { registerPeopleRoutes } from './routes/people.js';
 import { registerWeekRoutes } from './routes/weeks.js';
 
 export interface AppDeps {
   repo: Repository;
   clock: Clock;
+  events: EventBus;
   env: Pick<Env, 'CRON_SECRET' | 'APP_URL' | 'WEB_ORIGIN'>;
 }
 
@@ -37,6 +40,7 @@ export function buildApp(deps: AppDeps, options: { logger?: boolean } = {}): Fas
 
   registerPeopleRoutes(app, deps);
   registerWeekRoutes(app, deps);
+  registerEventRoutes(app, deps);
 
   return app;
 }

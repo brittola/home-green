@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../../server/app.js';
+import { createEventBus } from '../../server/events.js';
 import { createMemoryRepository } from '../fakes/memory-repository.js';
 
 const env = {
@@ -19,7 +20,7 @@ beforeEach(() => {
     { personId: 1, date: '2026-11-17' },
     { personId: 2, date: '2026-11-17' },
   );
-  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env });
+  app = buildApp({ repo, clock: () => new Date('2026-11-13T19:00:00Z'), env, events: createEventBus() });
 });
 
 describe('GET /api/people', () => {
