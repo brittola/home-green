@@ -12,22 +12,27 @@ function isAuthorized(header: string | undefined, secret: string): boolean {
 }
 
 export function registerCronRoutes(app: FastifyInstance, deps: AppDeps): void {
-  app.post('/api/cron/weekly-reminder', async (request, reply) => {
-    if (!isAuthorized(request.headers.authorization, deps.env.CRON_SECRET)) {
-      return reply.status(401).send({ error: 'unauthorized' });
-    }
-    try {
-      const status = await sendWeeklyReminder({
-        repo: deps.repo,
-        slack: deps.slack,
-        today: todayIn(deps.clock()),
-        appUrl: deps.env.APP_URL,
-      });
-      request.log.info({ status }, 'weekly reminder');
-      return { status };
-    } catch (error) {
-      request.log.error(error, 'weekly reminder failed');
-      return reply.status(502).send({ error: 'slack-failed' });
-    }
+  app.register(async (scope) => {
+    scope.removeAllContentTypeParsers();
+    scope.addContentTypeParser('*', { parseAs: 'buffer' }, (_request, _body, done) => done(null, undefined));
+
+    scope.post('/api/cron/weekly-reminder', async (request, reply) => {
+      if (!isAuthorized(request.headers.authorization, deps.env.CRON_SECRET)) {
+        return reply.status(401).send({ error: 'unauthorized' });
+      }
+      try {
+        const status = await sendWeeklyReminder({
+          repo: deps.repo,
+          slack: deps.slack,
+          today: todayIn(deps.clock()),
+          appUrl: deps.env.APP_URL,
+        });
+        request.log.info({ status }, 'weekly reminder');
+        return { status };
+      } catch (error) {
+        request.log.error(error, 'weekly reminder failed');
+        return reply.status(502).send({ error: 'slack-failed' });
+      }
+    });
   });
 }

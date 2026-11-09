@@ -51,6 +51,23 @@ describe('POST /api/cron/weekly-reminder', () => {
     expect((await app.inject({ method: 'POST', url: '/api/cron/weekly-reminder' })).statusCode).toBe(401);
   });
 
+  it('accepts any request body content type, as cron-job.org sends one', async () => {
+    for (const [contentType, payload] of [
+      ['application/x-www-form-urlencoded', ''],
+      ['application/json', ''],
+      ['text/plain', 'ping'],
+    ] as const) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/cron/weekly-reminder',
+        headers: { authorization: `Bearer ${env.CRON_SECRET}`, 'content-type': contentType },
+        payload,
+      });
+      expect(res.statusCode).toBe(200);
+    }
+    expect(slackPosts).toHaveLength(1);
+  });
+
   it('401 with a wrong secret', async () => {
     expect((await callCron('Bearer wrong')).statusCode).toBe(401);
   });
